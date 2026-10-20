@@ -1,0 +1,21 @@
+[project]
+name = "graph-memory-platform-poc"
+version = "0.1.0"
+description = "Agent-app POC demo pushing AI-shaped signals into graph-memory-platform (HTTP ingest or Pulsar), then reading context back over REST + MCP."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+dependencies = ["httpx>=0.27"]
+
+[project.optional-dependencies]
+pulsar = ["pulsar-client>=3.5"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/poc_demo"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
