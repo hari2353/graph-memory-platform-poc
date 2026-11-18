@@ -16,16 +16,22 @@ class ContextReader:
         self._token = token
         self._timeout_s = timeout_s
 
-    def rest_context(self, user: str, capability: str = "skills") -> dict[str, Any]:
+    def rest_context(
+        self, user: str, capability: str = "skills", *, as_of: str | None = None
+    ) -> dict[str, Any]:
+        params = {"as_of": as_of} if as_of else None
         response = httpx.get(
             f"{self._rest_base}/v1/context/{user}/{capability}",
             headers={"Authorization": f"Bearer {self._token}"},
             timeout=self._timeout_s,
+            params=params,
         )
         response.raise_for_status()
         return response.json()
 
-    def mcp_context(self, user: str, capability: str = "skills") -> dict[str, Any]:
+    def mcp_context(
+        self, user: str, capability: str = "skills", *, as_of: str | None = None
+    ) -> dict[str, Any]:
         """Stateless JSON mode: initialize then tools/call, two raw POSTs."""
         headers = {"Authorization": f"Bearer {self._token}", "Accept": "application/json"}
         with httpx.Client(timeout=self._timeout_s) as client:
@@ -50,7 +56,14 @@ class ContextReader:
                     "jsonrpc": "2.0",
                     "id": 2,
                     "method": "tools/call",
-                    "params": {"name": "get_context", "arguments": {"user": user, "capability": capability}},
+                    "params": {
+                        "name": "get_context",
+                        "arguments": {
+                            "user": user,
+                            "capability": capability,
+                            **({"as_of": as_of} if as_of else {}),
+                        },
+                    },
                 },
                 headers=headers,
             )
@@ -58,8 +71,11 @@ class ContextReader:
             body = call.json()
         return body
 
-    def parity(self, user: str, capability: str = "skills") -> tuple[dict[str, Any], dict[str, Any], bool]:
-        rest = self.rest_context(user, capability)
-        mcp = self.mcp_context(user, capability)
+    def parity(
+        self, user: str, capability: str = "skills", *, as_of: str | None = None
+    ) -> tuple[dict[str, Any], dict[str, Any], bool]:
+        """Same instant on both channels — parity compares like with like."""
+        rest = self.rest_context(user, capability, as_of=as_of)
+        mcp = self.mcp_context(user, capability, as_of=as_of)
         mcp_payload = mcp["result"]["structuredContent"]["payload"]
         return rest["payload"], mcp_payload, mcp_payload == rest["payload"]

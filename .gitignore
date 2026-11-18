@@ -3,3 +3,6 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# stray self-copy from the copy mishap; never track
+/graph-memory-platform-poc/

@@ -83,8 +83,20 @@ src/poc_demo/generator.py        AI-signal generator (seeded, ITF-shaped)
 src/poc_demo/ingest_http.py      thin HTTP pusher (the platform's own contract)
 src/poc_demo/producer_pulsar.py  Pulsar producer (optional extra)
 src/poc_demo/context_reads.py    REST + MCP reads for parity + top-k printing
+src/poc_demo/report.py           bounded Markdown evidence report per run
 src/poc_demo/demo.py             the orchestrator
 ```
+
+## Point-in-time reads and evidence reports
+
+The demo exercises the platform's `as_of` reads on both channels: `parity()`
+compares REST and MCP **at the same instant**, and the run prints the memory
+as it looked mid-stream (later facts absent, later forgets not yet applied)
+next to the now-view. `--report PATH` writes the run down as bounded
+Markdown — counts, ingest result, the parity verdict, per-channel top-k and
+the mid-stream vs now comparison — reproducible evidence, not vibes. The
+seeded generator's stream shape is pinned by tests, so drift fails CI
+loudly.
 
 This repo is a **client**: everything interesting (validating, storing,
 projecting, scoring, serving) happens in the platform. For architecture and
